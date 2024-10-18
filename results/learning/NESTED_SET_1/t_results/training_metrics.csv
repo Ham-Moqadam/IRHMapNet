@@ -1,6 +1,0 @@
-trial_number,model_name,optimizer_name,learning_rate,dropout_rate,l2_lambda,activation_function,loss_function,momentum,best_val_loss
-1,Unet_wide,adam,0.00073185,0.1,2.3074e-05,relu,dice_loss,0.9,0.7816455960273743
-2,Unet_deeper,rmsprop,1.0373e-05,0.2,1.247e-05,leaky_relu,binary_crossentropy,0.6,0.28588318824768066
-3,Unet_deeper,rmsprop,1.287e-05,0.15,2.2284e-05,relu,binary_crossentropy,0.6,0.2546463906764984
-4,Unet_deep,sgd,0.00010836,0.15,0.0054708,relu,binary_crossentropy,0.8,15.447222709655762
-5,Unet_simple,sgd,0.00046655,0.3,0.0012641,leaky_relu,binary_crossentropy,0.3,3.7492716312408447

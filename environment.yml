@@ -1,0 +1,14 @@
+name: tensorflow-gpu
+channels:
+        - conda-forge
+dependencies:
+        - python=3.10
+        - pip
+        - scikit-learn
+        - numpy
+        - scipy
+        - pandas
+        - optuna
+        - matplotlib
+        - pip:
+                - tensorflow[and-cuda]

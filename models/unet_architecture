@@ -1,0 +1,124 @@
+// U-Net Architecture
+digraph {
+	Input [label="Input
+(512x512x1)" shape=box]
+	c1_1 [label="Conv2D(16)
+(3x3)" shape=box]
+	dropout1 [label=Dropout shape=box]
+	c1_2 [label="Conv2D(16)
+(3x3)" shape=box]
+	p1 [label="MaxPooling2D
+(2x2)" shape=box]
+	Input -> c1_1
+	c1_1 -> dropout1
+	dropout1 -> c1_2
+	c1_2 -> p1
+	c2_1 [label="Conv2D(32)
+(3x3)" shape=box]
+	dropout2 [label=Dropout shape=box]
+	c2_2 [label="Conv2D(32)
+(3x3)" shape=box]
+	p2 [label="MaxPooling2D
+(2x2)" shape=box]
+	p1 -> c2_1
+	c2_1 -> dropout2
+	dropout2 -> c2_2
+	c2_2 -> p2
+	c3_1 [label="Conv2D(64)
+(3x3)" shape=box]
+	dropout3 [label=Dropout shape=box]
+	c3_2 [label="Conv2D(64)
+(3x3)" shape=box]
+	p3 [label="MaxPooling2D
+(2x2)" shape=box]
+	p2 -> c3_1
+	c3_1 -> dropout3
+	dropout3 -> c3_2
+	c3_2 -> p3
+	c4_1 [label="Conv2D(128)
+(3x3)" shape=box]
+	dropout4 [label=Dropout shape=box]
+	c4_2 [label="Conv2D(128)
+(3x3)" shape=box]
+	p4 [label="MaxPooling2D
+(2x2)" shape=box]
+	p3 -> c4_1
+	c4_1 -> dropout4
+	dropout4 -> c4_2
+	c4_2 -> p4
+	c5_1 [label="Conv2D(256)
+(3x3)" shape=box]
+	dropout5 [label=Dropout shape=box]
+	c5_2 [label="Conv2D(256)
+(3x3)" shape=box]
+	p5 [label="MaxPooling2D
+(2x2)" shape=box]
+	p4 -> c5_1
+	c5_1 -> dropout5
+	dropout5 -> c5_2
+	c5_2 -> p5
+	c5_1 [label="Conv2D(256)
+(3x3)" shape=box]
+	dropout5 [label=Dropout shape=box]
+	c5_2 [label="Conv2D(256)
+(3x3)" shape=box]
+	p4 -> c5_1
+	c5_1 -> dropout5
+	dropout5 -> c5_2
+	u6 [label="Conv2DTranspose(128)
+(2x2)" shape=box]
+	concat6 [label=Concatenate shape=box]
+	c6_1 [label="Conv2D(128)
+(3x3)" shape=box]
+	dropout6 [label=Dropout shape=box]
+	c6_2 [label="Conv2D(128)
+(3x3)" shape=box]
+	c5_2 -> u6
+	u6 -> concat6
+	concat6 -> c6_1
+	c6_1 -> dropout6
+	dropout6 -> c6_2
+	u7 [label="Conv2DTranspose(64)
+(2x2)" shape=box]
+	concat7 [label=Concatenate shape=box]
+	c7_1 [label="Conv2D(64)
+(3x3)" shape=box]
+	dropout7 [label=Dropout shape=box]
+	c7_2 [label="Conv2D(64)
+(3x3)" shape=box]
+	c6_2 -> u7
+	u7 -> concat7
+	concat7 -> c7_1
+	c7_1 -> dropout7
+	dropout7 -> c7_2
+	u8 [label="Conv2DTranspose(32)
+(2x2)" shape=box]
+	concat8 [label=Concatenate shape=box]
+	c8_1 [label="Conv2D(32)
+(3x3)" shape=box]
+	dropout8 [label=Dropout shape=box]
+	c8_2 [label="Conv2D(32)
+(3x3)" shape=box]
+	c7_2 -> u8
+	u8 -> concat8
+	concat8 -> c8_1
+	c8_1 -> dropout8
+	dropout8 -> c8_2
+	u9 [label="Conv2DTranspose(16)
+(2x2)" shape=box]
+	concat9 [label=Concatenate shape=box]
+	c9_1 [label="Conv2D(16)
+(3x3)" shape=box]
+	dropout9 [label=Dropout shape=box]
+	c9_2 [label="Conv2D(16)
+(3x3)" shape=box]
+	c8_2 -> u9
+	u9 -> concat9
+	concat9 -> c9_1
+	c9_1 -> dropout9
+	dropout9 -> c9_2
+	Output [label="Conv2D(1)
+(1x1)
+Sigmoid" shape=box]
+	c9_2 -> Output
+}
