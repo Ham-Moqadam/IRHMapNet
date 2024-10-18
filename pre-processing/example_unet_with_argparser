@@ -1,0 +1,79 @@
+# train_model.py
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Dropout
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.regularizers import l2
+import argparse
+
+def unet(input_size=(512, 512, 1), dropout_rate=0.5, l2_lambda=0.01):
+    inputs = Input(input_size)
+    
+    # Down-sampling
+    conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(inputs)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+    pool1 = Dropout(dropout_rate)(pool1)
+
+    conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(pool1)
+    conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+    pool2 = Dropout(dropout_rate)(pool2)
+
+    # Up-sampling
+    up1 = UpSampling2D(size=(2, 2))(pool2)
+    up1 = concatenate([up1, conv2], axis=3)
+    conv_up1 = Conv2D(128, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(up1)
+    conv_up1 = Conv2D(128, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(conv_up1)
+    
+    up2 = UpSampling2D(size=(2, 2))(conv_up1)
+    up2 = concatenate([up2, conv1], axis=3)
+    conv_up2 = Conv2D(64, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(up2)
+    conv_up2 = Conv2D(64, 3, activation='relu', padding='same', kernel_regularizer=l2(l2_lambda))(conv_up2)
+    
+    conv_final = Conv2D(1, 1, activation='sigmoid')(conv_up2)
+    
+    model = Model(inputs=inputs, outputs=conv_final)
+    return model
+
+def train():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', type=int, default=2, help='Batch size for training')
+    parser.add_argument('--epochs', type=int, default=50, help='Number of epochs for training')
+    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate for the optimizer')
+    parser.add_argument('--optimizer', type=str, default='adam', choices=['adam', 'sgd', 'rmsprop'], help='Optimizer for training')
+    parser.add_argument('--dropout_rate', type=float, default=0.5, help='Dropout rate')
+    parser.add_argument('--l2_lambda', type=float, default=0.01, help='L2 regularization lambda')
+
+    args = parser.parse_args()
+
+    # Load slices
+    radargram_slices = [f for f in os.listdir('slices/radargrams') if f.endswith('.csv')]
+    mask_slices = [f for f in os.listdir('slices/masks') if f.endswith('.csv')]
+    
+    X = np.array([np.loadtxt(os.path.join('slices/radargrams', f), delimiter=',') for f in radargram_slices])
+    y = np.array([np.loadtxt(os.path.join('slices/masks', f), delimiter=',') for f in mask_slices])
+    
+    # Add channel dimension
+    X = X[..., np.newaxis]
+    y = y[..., np.newaxis]
+    
+    model = unet(dropout_rate=args.dropout_rate, l2_lambda=args.l2_lambda)
+    
+    if args.optimizer == 'adam':
+        optimizer = Adam(learning_rate=args.learning_rate)
+    elif args.optimizer == 'sgd':
+        optimizer = SGD(learning_rate=args.learning_rate)
+    elif args.optimizer == 'rmsprop':
+        optimizer = RMSprop(learning_rate=args.learning_rate)
+    
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    model.fit(X, y, batch_size=args.batch_size, epochs=args.epochs, verbose=1)
+    
+    model.save('models/unet_model.h5')
+
+if __name__ == "__main__":
+    train()
+
